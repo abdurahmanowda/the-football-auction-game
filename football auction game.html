@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1v1 Football Draft & Match Simulator</title>
+<style>
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+/* Green field gradient + repeating black and white football pattern */
+background-color: #2e7d32;
+background-image:
+radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 2px, transparent 2px),
+repeating-linear-gradient(0deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 50px, transparent 50px, transparent 100px);
+background-size: 40px 40px, 100% 100%;
+min-height: 100vh;
+display: flex;
+justify-content: center;
+align-items: center;
+padding: 20px;
+position: relative;
+}
+
+/* Floating Soccer Balls Background Decor */
+body::before {
+content: "⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽";
+position: absolute;
+top: 10px;
+left: 0;
+width: 100%;
+font-size: 2rem;
+letter-spacing: 60px;
+opacity: 0.15;
+text-align: center;
+pointer-events: none;
+}
+
+/* Setup Modal Overlay */
+.modal-overlay {
+position: fixed;
+top: 0; left: 0; right: 0; bottom: 0;
+background: rgba(0, 0, 0, 0.85);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 999;
+}
+
+.modal-card {
+background: #ffffff;
+padding: 30px;
+border-radius: 12px;
+width: 90%;
+max-width: 450px;
+text-align: center;
+box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.modal-card h2 {
+margin-bottom: 15px;
+color: #1f2937;
+}
+
+.modal-card input {
+width: 100%;
+padding: 12px;
+font-size: 1.1rem;
+margin: 15px 0;
+border: 2px solid #d1d5db;
+border-radius: 8px;
+text-align: center;
+}
+
+/* Main Container */
+.auction-container {
+background: #ffffff;
+width: 100%;
+max-width: 950px;
+border-radius: 12px;
+box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+overflow: hidden;
+display: flex;
+flex-direction: column;
+border: 4px solid #1e5622;
+}
+
+.header {
+background: #111827;
+color: #ffffff;
+padding: 15px 20px;
+text-align: center;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.header h1 {
+font-size: 1.5rem;
+}
+
+.round-badge {
+background: #f59e0b;
+color: #111827;
+padding: 5px 12px;
+border-radius: 20px;
+font-weight: bold;
+}
+
+.budget-info {
+display: flex;
+justify-content: space-between;
+background: #1f2937;
+padding: 12px 20px;
+color: #ffffff;
+font-weight: bold;
+border-bottom: 3px solid #10b981;
+}
+
+.budget-box {
+font-size: 0.95rem;
+}
+
+.budget-value {
+color: #34d399;
+font-size: 1.1rem;
+}
+
+.auction-body {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 20px;
+padding: 20px;
+}
+
+@media (max-width: 768px) {
+.auction-body {
+grid-template-columns: 1fr;
+}
+}
+
+/* Player Card */
+.player-card {
+border: 2px solid #e5e7eb;
+border-radius: 8px;
+padding: 20px;
+text-align: center;
+background: #f9fafb;
+}
+
+.player-image {
+font-size: 4rem;
+margin-bottom: 10px;
+}
+
+.player-name {
+font-size: 1.4rem;
+font-weight: bold;
+color: #111827;
+}
+
+.badge {
+display: inline-block;
+background: #2563eb;
+color: white;
+padding: 4px 10px;
+border-radius: 12px;
+font-size: 0.85rem;
+margin: 4px;
+}
+
+/* Bidding Controls */
+.bidding-section {
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+.bid-input-group {
+display: flex;
+gap: 8px;
+}
+
+.bid-input-group input {
+flex: 1;
+padding: 10px;
+border: 1px solid #d1d5db;
+border-radius: 6px;
+font-size: 1rem;
+}
+
+.btn {
+background: #10b981;
+color: white;
+border: none;
+padding: 10px 16px;
+font-size: 1rem;
+font-weight: bold;
+border-radius: 6px;
+cursor: pointer;
+}
+
+.btn:hover {
+background: #059669;
+}
+
+.btn-pass {
+background: #ef4444;
+}
+
+.btn-pass:hover {
+background: #dc2626;
+}
+
+.history-card {
+border: 1px solid #e5e7eb;
+border-radius: 8px;
+background: #ffffff;
+flex: 1;
+display: flex;
+flex-direction: column;
+height: 180px;
+}
+
+.history-card h3 {
+background: #f3f4f6;
+padding: 8px 12px;
+font-size: 0.9rem;
+color: #374151;
+border-bottom: 1px solid #e5e7eb;
+}
+
+.history-list {
+list-style: none;
+padding: 8px;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.history-item {
+display: flex;
+justify-content: space-between;
+padding: 6px 10px;
+border-radius: 4px;
+font-size: 0.85rem;
+}
+
+.history-item.user { background: #ecfdf5; border-left: 4px solid #10b981; }
+.history-item.opponent { background: #fef2f2; border-left: 4px solid #ef4444; }
+
+.status-msg {
+font-size: 0.85rem;
+color: #dc2626;
+min-height: 18px;
+}
+
+/* Squad Lists */
+.squads-panel {
+background: #f3f4f6;
+padding: 15px 20px;
+border-top: 2px solid #e5e7eb;
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 15px;
+font-size: 0.85rem;
+}
+
+.squad-column h4 {
+margin-bottom: 8px;
+color: #374151;
+border-bottom: 1px solid #d1d5db;
+padding-bottom: 4px;
+}
+
+.squad-ul {
+list-style: none;
+max-height: 100px;
+overflow-y: auto;
+}
+
+/* Match Simulation Section */
+#match-view {
+display: none;
+padding: 30px;
+text-align: center;
+}
+
+.scoreboard {
+display: flex;
+justify-content: space-around;
+align-items: center;
+background: #111827;
+color: #ffffff;
+padding: 20px;
+border-radius: 8px;
+font-size: 1.5rem;
+margin-bottom: 20px;
+}
+
+.score {
+font-size: 3rem;
+color: #34d399;
+font-weight: bold;
+}
+
+.match-log {
+background: #f9fafb;
+border: 1px solid #e5e7eb;
+padding: 15px;
+border-radius: 8px;
+height: 200px;
+overflow-y: auto;
+text-align: left;
+margin-bottom: 20px;
+font-family: monospace;
+}
+</style>
+</head>
+<body>
+
+<!-- Setup Budget Modal -->
+<div class="modal-overlay" id="setup-modal">
+<div class="modal-card">
+<h2>⚽ Welcome to Auction Arena</h2>
+<p>Set the starting budget for both you and your opponent:</p>
+<input type="text" id="initial-budget-input" value="300,000,000" oninput="formatInputWithCommas(this)">
+<button class="btn" style="width: 100%" onclick="startGame()">Start Game</button>
+</div>
+</div>
+
+<!-- Main Game Container -->
+<div class="auction-container" id="game-container">
+<div class="header">
+<h1>⚽ Football Auction Arena</h1>
+<span class="round-badge" id="round-indicator">Round 1 / 11</span>
+</div>
+
+<div class="budget-info">
+<div class="budget-box">Your Budget: <span class="budget-value" id="user-budget">$0</span></div>
+<div class="budget-box">Rival Budget: <span class="budget-value" id="ai-budget" style="color: #f87171;">$0</span></div>
+</div>
+
+<!-- AUCTION VIEW -->
+<div id="auction-view">
+<div class="auction-body">
+<div class="player-card">
+<div class="player-image">⚽</div>
+<div class="player-name" id="player-name">Loading...</div>
+<div>
+<span class="badge" id="player-pos">FW</span>
+<span class="badge" id="player-rating">OVR: 91</span>
+</div>
+<p style="color: #4b5563; font-size: 0.85rem; margin-top: 10px;">
+Base Price: <strong id="base-price">$10,000,000</strong><br>
+Estimated Value: <strong id="market-value">$180,000,000</strong>
+</p>
+</div>
+
+<div class="bidding-section">
+<div>
+<label style="display: block; font-weight: bold; margin-bottom: 5px; color: #374151; font-size: 0.9rem;">
+Current Highest Bid: <span id="highest-bid" style="color: #059669;">$0</span>
+</label>
+<div class="bid-input-group">
+<input type="text" id="bid-input" placeholder="Enter Bid ($)" oninput="formatInputWithCommas(this)">
+<button class="btn" onclick="placeUserBid()">Bid</button>
+<button class="btn btn-pass" onclick="passAuction()">Pass</button>
+</div>
+<div class="status-msg" id="status-msg"></div>
+</div>
+
+<div class="history-card">
+<h3>Live Bidding Log</h3>
+<ul class="history-list" id="history-list"></ul>
+</div>
+</div>
+</div>
+
+<!-- Current Squads View -->
+<div class="squads-panel">
+<div class="squad-column">
+<h4>Your Squad (<span id="user-squad-count">0</span>/11)</h4>
+<ul class="squad-ul" id="user-squad-list"></ul>
+</div>
+<div class="squad-column">
+<h4>Rival FC Squad (<span id="ai-squad-count">0</span>/11)</h4>
+<ul class="squad-ul" id="ai-squad-list"></ul>
+</div>
+</div>
+</div>
+
+<!-- MATCH SIMULATION VIEW -->
+<div id="match-view">
+<h2>🏆 Final Match Simulation 🏆</h2>
+<p style="margin-bottom: 15px; color: #4b5563;">Your 11 players are going head-to-head against Rival FC!</p>
+
+<div class="scoreboard">
+<div>Your Team<br><small id="user-team-ovr">OVR: 0</small></div>
+<div class="score" id="match-score">0 - 0</div>
+<div>Rival FC<br><small id="ai-team-ovr">OVR: 0</small></div>
+</div>
+
+<div class="match-log" id="match-log"></div>
+<button class="btn" onclick="location.reload()">Play Again</button>
+</div>
+
+</div>
+
+<script>
+// 11 Draft Pairs (Top Target vs Backup Player)
+const draftPairs = [
+{ top: { name: "Kylian Mbappé", pos: "FW", ovr: 91, val: 180000000 }, backup: { name: "Robert Lewandowski", pos: "FW", ovr: 88, val: 50000000 } },
+{ top: { name: "Erling Haaland", pos: "FW", ovr: 91, val: 180000000 }, backup: { name: "Harry Kane", pos: "FW", ovr: 89, val: 90000000 } },
+{ top: { name: "Vinícius Júnior", pos: "LW", ovr: 90, val: 150000000 }, backup: { name: "Rafael Leão", pos: "LW", ovr: 86, val: 60000000 } },
+{ top: { name: "Jude Bellingham", pos: "CAM", ovr: 90, val: 140000000 }, backup: { name: "Jamal Musiala", pos: "CAM", ovr: 87, val: 80000000 } },
+{ top: { name: "Kevin De Bruyne", pos: "CM", ovr: 91, val: 100000000 }, backup: { name: "Luka Modrić", pos: "CM", ovr: 86, val: 30000000 } },
+{ top: { name: "Rodri", pos: "CDM", ovr: 91, val: 120000000 }, backup: { name: "Declan Rice", pos: "CDM", ovr: 87, val: 85000000 } },
+{ top: { name: "Trent Alexander-Arnold", pos: "RB", ovr: 86, val: 70000000 }, backup: { name: "Achraf Hakimi", pos: "RB", ovr: 84, val: 50000000 } },
+{ top: { name: "Alphonso Davies", pos: "LB", ovr: 85, val: 60000000 }, backup: { name: "Theo Hernández", pos: "LB", ovr: 84, val: 55000000 } },
+{ top: { name: "Virgil van Dijk", pos: "CB", ovr: 89, val: 75000000 }, backup: { name: "Antonio Rüdiger", pos: "CB", ovr: 87, val: 45000000 } },
+{ top: { name: "Rúben Dias", pos: "CB", ovr: 88, val: 80000000 }, backup: { name: "William Saliba", pos: "CB", ovr: 86, val: 65000000 } },
+{ top: { name: "Thibaut Courtois", pos: "GK", ovr: 89, val: 60000000 }, backup: { name: "Alisson Becker", pos: "GK", ovr: 88, val: 50000000 } }
+];
+
+let currentRound = 0;
+let userBudget = 0;
+let aiBudget = 0;
+let highestBid = 0;
+let highestBidder = "";
+let isAuctionActive = false;
+
+let userSquad = [];
+let aiSquad = [];
+
+function formatInputWithCommas(input) {
+let value = input.value.replace(/,/g, '');
+if (!isNaN(value) && value.length > 0) {
+input.value = parseInt(value, 10).toLocaleString();
+} else {
+input.value = '';
+}
+}
+
+function startGame() {
+const input = document.getElementById('initial-budget-input').value.replace(/,/g, '');
+const budget = parseInt(input, 10);
+
+if (isNaN(budget) || budget <= 0) {
+alert("Please enter a valid budget!");
+return;
+}
+
+userBudget = budget;
+aiBudget = budget;
+
+document.getElementById('setup-modal').style.display = 'none';
+updateUI();
+loadRound();
+}
+
+function updateUI() {
+document.getElementById('user-budget').textContent = `$${userBudget.toLocaleString()}`;
+document.getElementById('ai-budget').textContent = `$${aiBudget.toLocaleString()}`;
+document.getElementById('round-indicator').textContent = `Round ${currentRound + 1} / 11`;
+
+document.getElementById('user-squad-count').textContent = userSquad.length;
+document.getElementById('ai-squad-count').textContent = aiSquad.length;
+
+document.getElementById('user-squad-list').innerHTML = userSquad.map(p => `<li>✅ ${p.name} (${p.pos} - ${p.ovr})</li>`).join('');
+document.getElementById('ai-squad-list').innerHTML = aiSquad.map(p => `<li>🤖 ${p.name} (${p.pos} - ${p.ovr})</li>`).join('');
+}
+
+function loadRound() {
+if (currentRound >= 11) {
+startMatchSimulation();
+return;
+}
+
+const pair = draftPairs[currentRound];
+const topPlayer = pair.top;
+
+highestBid = Math.round(topPlayer.val * 0.1);
+highestBidder = "Auctioneer";
+isAuctionActive = true;
+
+document.getElementById('player-name').textContent = topPlayer.name;
+document.getElementById('player-pos').textContent = topPlayer.pos;
+document.getElementById('player-rating').textContent = `OVR: ${topPlayer.ovr}`;
+document.getElementById('base-price').textContent = `$${highestBid.toLocaleString()}`;
+document.getElementById('market-value').textContent = `$${topPlayer.val.toLocaleString()}`;
+document.getElementById('highest-bid').textContent = `$${highestBid.toLocaleString()}`;
+document.getElementById('history-list').innerHTML = `<li class="history-item opponent"><span><strong>Auctioneer:</strong> Bidding starts</span><span>$${highestBid.toLocaleString()}</span></li>`;
+document.getElementById('status-msg').textContent = "";
+
+updateUI();
+}
+
+function addHistoryItem(bidder, amount, isUser = false) {
+const li = document.createElement('li');
+li.className = `history-item ${isUser ? 'user' : 'opponent'}`;
+li.innerHTML = `<span><strong>${bidder}:</strong> placed a bid</span><span>$${amount.toLocaleString()}</span>`;
+const historyList = document.getElementById('history-list');
+historyList.prepend(li);
+}
+
+function placeUserBid() {
+if (!isAuctionActive) return;
+
+const input = document.getElementById('bid-input');
+const rawValue = input.value.replace(/,/g, '');
+const bidAmount = parseInt(rawValue, 10);
+const statusMsg = document.getElementById('status-msg');
+statusMsg.textContent = "";
+
+if (isNaN(bidAmount)) {
+statusMsg.textContent = "Please enter a valid bid amount.";
+return;
+}
+
+if (bidAmount <= highestBid) {
+statusMsg.textContent = `Bid must exceed current highest bid ($${highestBid.toLocaleString()}).`;
+return;
+}
+
+if (bidAmount > userBudget) {
+statusMsg.textContent = "Insufficient budget.";
+return;
+}
+
+highestBid = bidAmount;
+highestBidder = "You";
+document.getElementById('highest-bid').textContent = `$${highestBid.toLocaleString()}`;
+addHistoryItem("You", highestBid, true);
+input.value = "";
+
+// Trigger AI decision
+setTimeout(simulateAiBid, 1000);
+}
+
+function passAuction() {
+if (!isAuctionActive) return;
+document.getElementById('status-msg').textContent = "You passed this round.";
+endRound(highestBidder === "You" ? "You" : "Rival FC");
+}
+
+function simulateAiBid() {
+if (!isAuctionActive) return;
+
+const pair = draftPairs[currentRound];
+const maxValuation = pair.top.val * 1.1; // AI caps at 110% valuation
+
+// AI will pass if it cannot afford or bid exceeds market cap
+if (highestBid >= maxValuation || (highestBid + 5000000) > aiBudget) {
+addHistoryItem("Auctioneer", "Rival FC passed! SOLD to You!", false);
+endRound("You");
+return;
+}
+
+// AI places next bid (+5% to +10%)
+const increment = Math.max(1000000, Math.round((highestBid * 0.08) / 1000000) * 1000000);
+highestBid += increment;
+highestBidder = "Rival FC";
+
+document.getElementById('highest-bid').textContent = `$${highestBid.toLocaleString()}`;
+addHistoryItem("Rival FC", highestBid, false);
+}
+
+function endRound(winner) {
+isAuctionActive = false;
+const pair = draftPairs[currentRound];
+
+if (winner === "You") {
+userBudget -= highestBid;
+userSquad.push(pair.top);
+aiSquad.push(pair.backup); // Opponent automatically receives fallback player
+} else {
+aiBudget -= highestBid;
+aiSquad.push(pair.top);
+userSquad.push(pair.backup); // User receives fallback player
+}
+
+currentRound++;
+setTimeout(loadRound, 1500);
+}
+
+function startMatchSimulation() {
+document.getElementById('auction-view').style.display = 'none';
+document.getElementById('match-view').style.display = 'block';
+
+const userOvr = Math.round(userSquad.reduce((a, b) => a + b.ovr, 0) / 11);
+const aiOvr = Math.round(aiSquad.reduce((a, b) => a + b.ovr, 0) / 11);
+
+document.getElementById('user-team-ovr').textContent = `OVR: ${userOvr}`;
+document.getElementById('ai-team-ovr').textContent = `OVR: ${aiOvr}`;
+
+let userGoals = 0;
+let aiGoals = 0;
+const log = document.getElementById('match-log');
+
+log.innerHTML += `<p>0' - Kickoff! The match is underway.</p>`;
+
+// Goal probability based on squad OVR ratings
+for (let min = 10; min <= 90; min += 15) {
+let chance = Math.random() * 100;
+let userChance = 20 + (userOvr - aiOvr) * 3;
+
+if (chance < userChance) {
+userGoals++;
+let scorer = userSquad[Math.floor(Math.random() * 5)].name; // Attacker score
+log.innerHTML += `<p style="color: #059669;">⚽ ${min}' - GOAL! ${scorer} scores for Your Team!</p>`;
+} else if (chance > 80) {
+aiGoals++;
+let scorer = aiSquad[Math.floor(Math.random() * 5)].name;
+log.innerHTML += `<p style="color: #dc2626;">⚽ ${min}' - GOAL! ${scorer} scores for Rival FC!</p>`;
+}
+}
+
+log.innerHTML += `<p>90' - Full-Time Whistle!</p>`;
+document.getElementById('match-score').textContent = `${userGoals} - ${aiGoals}`;
+
+if (userGoals > aiGoals) {
+log.innerHTML += `<h3 style="color: #059669; margin-top: 10px;">🏆 VICTORY! You won the championship match!</h3>`;
+} else if (aiGoals > userGoals) {
+log.innerHTML += `<h3 style="color: #dc2626; margin-top: 10px;">❌ DEFEAT! Rival FC took the trophy!</h3>`;
+} else {
+log.innerHTML += `<h3 style="color: #d97706; margin-top: 10px;">🤝 DRAW! What a thrilling match!</h3>`;
+}
+}
+</script>
+</body>
+</html>
+
