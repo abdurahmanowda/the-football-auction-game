@@ -13,7 +13,6 @@ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-/* Green field gradient + repeating black and white football pattern */
 background-color: #2e7d32;
 background-image:
 radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 2px, transparent 2px),
@@ -27,7 +26,6 @@ padding: 20px;
 position: relative;
 }
 
-/* Floating Soccer Balls Background Decor */
 body::before {
 content: "⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽";
 position: absolute;
@@ -41,7 +39,6 @@ text-align: center;
 pointer-events: none;
 }
 
-/* Setup Modal Overlay */
 .modal-overlay {
 position: fixed;
 top: 0; left: 0; right: 0; bottom: 0;
@@ -77,7 +74,6 @@ border-radius: 8px;
 text-align: center;
 }
 
-/* Main Container */
 .auction-container {
 background: #ffffff;
 width: 100%;
@@ -144,7 +140,6 @@ grid-template-columns: 1fr;
 }
 }
 
-/* Player Card */
 .player-card {
 border: 2px solid #e5e7eb;
 border-radius: 8px;
@@ -174,7 +169,6 @@ font-size: 0.85rem;
 margin: 4px;
 }
 
-/* Bidding Controls */
 .bidding-section {
 display: flex;
 flex-direction: column;
@@ -261,7 +255,6 @@ color: #dc2626;
 min-height: 18px;
 }
 
-/* Squad Lists */
 .squads-panel {
 background: #f3f4f6;
 padding: 15px 20px;
@@ -285,7 +278,6 @@ max-height: 100px;
 overflow-y: auto;
 }
 
-/* Match Simulation Section */
 #match-view {
 display: none;
 padding: 30px;
@@ -325,7 +317,6 @@ font-family: monospace;
 </head>
 <body>
 
-<!-- Setup Budget Modal -->
 <div class="modal-overlay" id="setup-modal">
 <div class="modal-card">
 <h2>⚽ Welcome to Auction Arena</h2>
@@ -335,7 +326,6 @@ font-family: monospace;
 </div>
 </div>
 
-<!-- Main Game Container -->
 <div class="auction-container" id="game-container">
 <div class="header">
 <h1>⚽ Football Auction Arena</h1>
@@ -347,7 +337,6 @@ font-family: monospace;
 <div class="budget-box">Rival Budget: <span class="budget-value" id="ai-budget" style="color: #f87171;">$0</span></div>
 </div>
 
-<!-- AUCTION VIEW -->
 <div id="auction-view">
 <div class="auction-body">
 <div class="player-card">
@@ -383,7 +372,6 @@ Current Highest Bid: <span id="highest-bid" style="color: #059669;">$0</span>
 </div>
 </div>
 
-<!-- Current Squads View -->
 <div class="squads-panel">
 <div class="squad-column">
 <h4>Your Squad (<span id="user-squad-count">0</span>/11)</h4>
@@ -396,7 +384,6 @@ Current Highest Bid: <span id="highest-bid" style="color: #059669;">$0</span>
 </div>
 </div>
 
-<!-- MATCH SIMULATION VIEW -->
 <div id="match-view">
 <h2>🏆 Final Match Simulation 🏆</h2>
 <p style="margin-bottom: 15px; color: #4b5563;">Your 11 players are going head-to-head against Rival FC!</p>
@@ -414,20 +401,58 @@ Current Highest Bid: <span id="highest-bid" style="color: #059669;">$0</span>
 </div>
 
 <script>
-// 11 Draft Pairs (Top Target vs Backup Player)
-const draftPairs = [
+// Expanded Pool of Players Organized by Position
+const playerPool = {
+FW: [
 { top: { name: "Kylian Mbappé", pos: "FW", ovr: 91, val: 180000000 }, backup: { name: "Robert Lewandowski", pos: "FW", ovr: 88, val: 50000000 } },
 { top: { name: "Erling Haaland", pos: "FW", ovr: 91, val: 180000000 }, backup: { name: "Harry Kane", pos: "FW", ovr: 89, val: 90000000 } },
+{ top: { name: "Mohamed Salah", pos: "FW", ovr: 89, val: 100000000 }, backup: { name: "Victor Osimhen", pos: "FW", ovr: 87, val: 75000000 } },
+{ top: { name: "Lautaro Martínez", pos: "FW", ovr: 89, val: 110000000 }, backup: { name: "Julian Alvarez", pos: "FW", ovr: 85, val: 65000000 } }
+],
+WING: [
 { top: { name: "Vinícius Júnior", pos: "LW", ovr: 90, val: 150000000 }, backup: { name: "Rafael Leão", pos: "LW", ovr: 86, val: 60000000 } },
+{ top: { name: "Rodrygo Goes", pos: "RW", ovr: 87, val: 100000000 }, backup: { name: "Bukayo Saka", pos: "RW", ovr: 88, val: 120000000 } },
+{ top: { name: "Lamine Yamal", pos: "RW", ovr: 86, val: 120000000 }, backup: { name: "Khvicha Kvaratskhelia", pos: "LW", ovr: 85, val: 70000000 } },
+{ top: { name: "Neymar Jr", pos: "LW", ovr: 87, val: 45000000 }, backup: { name: "Son Heung-min", pos: "LW", ovr: 87, val: 50000000 } }
+],
+CAM: [
 { top: { name: "Jude Bellingham", pos: "CAM", ovr: 90, val: 140000000 }, backup: { name: "Jamal Musiala", pos: "CAM", ovr: 87, val: 80000000 } },
+{ top: { name: "Florian Wirtz", pos: "CAM", ovr: 89, val: 130000000 }, backup: { name: "Martin Ødegaard", pos: "CAM", ovr: 88, val: 90000000 } },
+{ top: { name: "Bruno Fernandes", pos: "CAM", ovr: 87, val: 65000000 }, backup: { name: "James Maddison", pos: "CAM", ovr: 84, val: 45000000 } }
+],
+CM: [
 { top: { name: "Kevin De Bruyne", pos: "CM", ovr: 91, val: 100000000 }, backup: { name: "Luka Modrić", pos: "CM", ovr: 86, val: 30000000 } },
+{ top: { name: "Pedri", pos: "CM", ovr: 87, val: 80000000 }, backup: { name: "Gavi", pos: "CM", ovr: 84, val: 60000000 } },
+{ top: { name: "Federico Valverde", pos: "CM", ovr: 88, val: 110000000 }, backup: { name: "Alexis Mac Allister", pos: "CM", ovr: 85, val: 70000000 } }
+],
+CDM: [
 { top: { name: "Rodri", pos: "CDM", ovr: 91, val: 120000000 }, backup: { name: "Declan Rice", pos: "CDM", ovr: 87, val: 85000000 } },
+{ top: { name: "Aurélien Tchouaméni", pos: "CDM", ovr: 86, val: 75000000 }, backup: { name: "Eduardo Camavinga", pos: "CDM", ovr: 85, val: 80000000 } }
+],
+RB: [
 { top: { name: "Trent Alexander-Arnold", pos: "RB", ovr: 86, val: 70000000 }, backup: { name: "Achraf Hakimi", pos: "RB", ovr: 84, val: 50000000 } },
+{ top: { name: "Jeremie Frimpong", pos: "RB", ovr: 85, val: 55000000 }, backup: { name: "Reece James", pos: "RB", ovr: 83, val: 40000000 } }
+],
+LB: [
 { top: { name: "Alphonso Davies", pos: "LB", ovr: 85, val: 60000000 }, backup: { name: "Theo Hernández", pos: "LB", ovr: 84, val: 55000000 } },
+{ top: { name: "Federico Dimarco", pos: "LB", ovr: 84, val: 45000000 }, backup: { name: "Nuno Mendes", pos: "LB", ovr: 83, val: 40000000 } }
+],
+CB: [
 { top: { name: "Virgil van Dijk", pos: "CB", ovr: 89, val: 75000000 }, backup: { name: "Antonio Rüdiger", pos: "CB", ovr: 87, val: 45000000 } },
 { top: { name: "Rúben Dias", pos: "CB", ovr: 88, val: 80000000 }, backup: { name: "William Saliba", pos: "CB", ovr: 86, val: 65000000 } },
-{ top: { name: "Thibaut Courtois", pos: "GK", ovr: 89, val: 60000000 }, backup: { name: "Alisson Becker", pos: "GK", ovr: 88, val: 50000000 } }
-];
+{ top: { name: "Éder Militão", pos: "CB", ovr: 86, val: 60000000 }, backup: { name: "Ronald Araújo", pos: "CB", ovr: 85, val: 55000000 } },
+{ top: { name: "Alessandro Bastoni", pos: "CB", ovr: 86, val: 70000000 }, backup: { name: "Gabriel Magalhães", pos: "CB", ovr: 85, val: 60000000 } }
+],
+GK: [
+{ top: { name: "Thibaut Courtois", pos: "GK", ovr: 89, val: 60000000 }, backup: { name: "Alisson Becker", pos: "GK", ovr: 88, val: 50000000 } },
+{ top: { name: "Ederson", pos: "GK", ovr: 88, val: 45000000 }, backup: { name: "Gianluigi Donnarumma", pos: "GK", ovr: 87, val: 40000000 } },
+{ top: { name: "Marc-André ter Stegen", pos: "GK", ovr: 88, val: 35000000 }, backup: { name: "Mike Maignan", pos: "GK", ovr: 86, val: 38000000 } }
+]
+};
+
+// Position Sequence for 11 Rounds
+const roundPositions = ["FW", "WING", "WING", "CAM", "CM", "CM", "CDM", "RB", "LB", "CB", "GK"];
+let selectedDraftPairs = [];
 
 let currentRound = 0;
 let userBudget = 0;
@@ -438,6 +463,15 @@ let isAuctionActive = false;
 
 let userSquad = [];
 let aiSquad = [];
+
+function generateRandomDraft() {
+selectedDraftPairs = [];
+roundPositions.forEach(pos => {
+const options = playerPool[pos];
+const randomChoice = options[Math.floor(Math.random() * options.length)];
+selectedDraftPairs.push(randomChoice);
+});
+}
 
 function formatInputWithCommas(input) {
 let value = input.value.replace(/,/g, '');
@@ -459,6 +493,8 @@ return;
 
 userBudget = budget;
 aiBudget = budget;
+
+generateRandomDraft();
 
 document.getElementById('setup-modal').style.display = 'none';
 updateUI();
@@ -483,7 +519,7 @@ startMatchSimulation();
 return;
 }
 
-const pair = draftPairs[currentRound];
+const pair = selectedDraftPairs[currentRound];
 const topPlayer = pair.top;
 
 highestBid = Math.round(topPlayer.val * 0.1);
@@ -540,7 +576,6 @@ document.getElementById('highest-bid').textContent = `$${highestBid.toLocaleStri
 addHistoryItem("You", highestBid, true);
 input.value = "";
 
-// Trigger AI decision
 setTimeout(simulateAiBid, 1000);
 }
 
@@ -553,17 +588,15 @@ endRound(highestBidder === "You" ? "You" : "Rival FC");
 function simulateAiBid() {
 if (!isAuctionActive) return;
 
-const pair = draftPairs[currentRound];
-const maxValuation = pair.top.val * 1.1; // AI caps at 110% valuation
+const pair = selectedDraftPairs[currentRound];
+const maxValuation = pair.top.val * 1.1;
 
-// AI will pass if it cannot afford or bid exceeds market cap
 if (highestBid >= maxValuation || (highestBid + 5000000) > aiBudget) {
 addHistoryItem("Auctioneer", "Rival FC passed! SOLD to You!", false);
 endRound("You");
 return;
 }
 
-// AI places next bid (+5% to +10%)
 const increment = Math.max(1000000, Math.round((highestBid * 0.08) / 1000000) * 1000000);
 highestBid += increment;
 highestBidder = "Rival FC";
@@ -574,16 +607,16 @@ addHistoryItem("Rival FC", highestBid, false);
 
 function endRound(winner) {
 isAuctionActive = false;
-const pair = draftPairs[currentRound];
+const pair = selectedDraftPairs[currentRound];
 
 if (winner === "You") {
 userBudget -= highestBid;
 userSquad.push(pair.top);
-aiSquad.push(pair.backup); // Opponent automatically receives fallback player
+aiSquad.push(pair.backup);
 } else {
 aiBudget -= highestBid;
 aiSquad.push(pair.top);
-userSquad.push(pair.backup); // User receives fallback player
+userSquad.push(pair.backup);
 }
 
 currentRound++;
@@ -606,14 +639,13 @@ const log = document.getElementById('match-log');
 
 log.innerHTML += `<p>0' - Kickoff! The match is underway.</p>`;
 
-// Goal probability based on squad OVR ratings
 for (let min = 10; min <= 90; min += 15) {
 let chance = Math.random() * 100;
 let userChance = 20 + (userOvr - aiOvr) * 3;
 
 if (chance < userChance) {
 userGoals++;
-let scorer = userSquad[Math.floor(Math.random() * 5)].name; // Attacker score
+let scorer = userSquad[Math.floor(Math.random() * 5)].name;
 log.innerHTML += `<p style="color: #059669;">⚽ ${min}' - GOAL! ${scorer} scores for Your Team!</p>`;
 } else if (chance > 80) {
 aiGoals++;
@@ -636,4 +668,6 @@ log.innerHTML += `<h3 style="color: #d97706; margin-top: 10px;">🤝 DRAW! What 
 </script>
 </body>
 </html>
+
+
 
