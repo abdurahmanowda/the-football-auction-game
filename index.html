@@ -3,671 +3,501 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1v1 Football Draft & Match Simulator</title>
+<title>Ultimate Football Arcade</title>
 <style>
-* {
-box-sizing: border-box;
-margin: 0;
-padding: 0;
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #064e3b 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; color: #fff; }
+.glass-card { background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+#portal-screen { width: 100%; max-width: 900px; padding: 40px; text-align: center; }
+#portal-screen h1 { font-size: 2.8rem; margin-bottom: 10px; background: linear-gradient(to right, #34d399, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+#portal-screen p { color: #94a3b8; margin-bottom: 30px; font-size: 1.1rem; }
+.game-selection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 600px) { .game-selection-grid { grid-template-columns: 1fr; } }
+.game-card { background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 30px 20px; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.game-card:hover { transform: translateY(-5px); border-color: #34d399; background: rgba(52, 211, 153, 0.1); box-shadow: 0 10px 25px rgba(52, 211, 153, 0.2); }
+.game-card .icon { font-size: 3.5rem; }
+.game-card h2 { font-size: 1.5rem; color: #f8fafc; }
+.game-card p { font-size: 0.9rem; color: #cbd5e1; margin: 0; }
+.view-container { display: none; width: 100%; max-width: 950px; }
+.btn { background: #10b981; color: white; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+.btn:hover { background: #059669; }
+.btn-secondary { background: #475569; }
+.btn-secondary:hover { background: #334155; }
+.setup-box { padding: 30px; text-align: center; }
+.setup-options { margin: 20px 0; display: flex; flex-direction: column; gap: 15px; text-align: left; }
+.setup-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #34d399; }
+.option-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+.opt-btn { flex: 1; min-width: 60px; padding: 10px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
+.opt-btn.active { background: #34d399; color: #0f172a; border-color: #34d399; }
+.hair-game-card { padding: 30px; text-align: center; position: relative; }
+.game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.hair-display { background: #020617; border-radius: 12px; padding: 20px; margin: 20px 0; border: 2px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; }
 
-body {
-background-color: #2e7d32;
-background-image:
-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 2px, transparent 2px),
-repeating-linear-gradient(0deg, rgba(255,255,255,0.05), rgba(255,255,255,0.05) 50px, transparent 50px, transparent 100px);
-background-size: 40px 40px, 100% 100%;
-min-height: 100vh;
-display: flex;
-justify-content: center;
-align-items: center;
-padding: 20px;
+/* Strict Forehead & Hairline Zoom Window */
+.player-image-box {
+width: 280px;
+height: 150px;
+border-radius: 12px;
+overflow: hidden;
+border: 3px solid #34d399;
+background: #000;
+box-shadow: 0 8px 20px rgba(0,0,0,0.6);
 position: relative;
 }
-
-body::before {
-content: "⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽ ⚽";
-position: absolute;
-top: 10px;
-left: 0;
+.player-image-box img {
 width: 100%;
-font-size: 2rem;
-letter-spacing: 60px;
-opacity: 0.15;
-text-align: center;
-pointer-events: none;
+height: 100%;
+object-fit: cover;
+object-position: center 12%;
+transform: scale(4.2);
+transform-origin: center top;
 }
 
-.modal-overlay {
-position: fixed;
-top: 0; left: 0; right: 0; bottom: 0;
-background: rgba(0, 0, 0, 0.85);
-display: flex;
-justify-content: center;
-align-items: center;
-z-index: 999;
-}
+.search-wrapper { position: relative; max-width: 450px; margin: 0 auto 15px auto; }
+.search-input { width: 100%; padding: 14px 18px; font-size: 1.1rem; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.2); background: rgba(15, 23, 42, 0.8); color: #fff; outline: none; }
+.search-input:focus { border-color: #34d399; }
+.suggestions-list { position: absolute; top: 100%; left: 0; right: 0; background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.2); border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 10; list-style: none; text-align: left; }
+.suggestion-item { padding: 12px 18px; cursor: pointer; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: #e2e8f0; }
+.suggestion-item:hover { background: #34d399; color: #0f172a; font-weight: bold; }
+.feedback-msg { height: 24px; font-weight: bold; margin-bottom: 15px; }
+.top-bar-btn { position: absolute; top: 15px; left: 15px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.9rem; }
+.top-bar-btn:hover { color: #fff; }
 
-.modal-card {
-background: #ffffff;
-padding: 30px;
-border-radius: 12px;
-width: 90%;
-max-width: 450px;
-text-align: center;
-box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-.modal-card h2 {
-margin-bottom: 15px;
-color: #1f2937;
-}
-
-.modal-card input {
-width: 100%;
-padding: 12px;
-font-size: 1.1rem;
-margin: 15px 0;
-border: 2px solid #d1d5db;
-border-radius: 8px;
-text-align: center;
-}
-
-.auction-container {
-background: #ffffff;
-width: 100%;
-max-width: 950px;
-border-radius: 12px;
-box-shadow: 0 12px 30px rgba(0,0,0,0.4);
-overflow: hidden;
-display: flex;
-flex-direction: column;
-border: 4px solid #1e5622;
-}
-
-.header {
-background: #111827;
-color: #ffffff;
-padding: 15px 20px;
-text-align: center;
-display: flex;
-justify-content: space-between;
-align-items: center;
-}
-
-.header h1 {
-font-size: 1.5rem;
-}
-
-.round-badge {
-background: #f59e0b;
-color: #111827;
-padding: 5px 12px;
-border-radius: 20px;
-font-weight: bold;
-}
-
-.budget-info {
-display: flex;
-justify-content: space-between;
-background: #1f2937;
-padding: 12px 20px;
-color: #ffffff;
-font-weight: bold;
-border-bottom: 3px solid #10b981;
-}
-
-.budget-box {
-font-size: 0.95rem;
-}
-
-.budget-value {
-color: #34d399;
-font-size: 1.1rem;
-}
-
-.auction-body {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 20px;
-padding: 20px;
-}
-
-@media (max-width: 768px) {
-.auction-body {
-grid-template-columns: 1fr;
-}
-}
-
-.player-card {
-border: 2px solid #e5e7eb;
-border-radius: 8px;
-padding: 20px;
-text-align: center;
-background: #f9fafb;
-}
-
-.player-image {
-font-size: 4rem;
-margin-bottom: 10px;
-}
-
-.player-name {
-font-size: 1.4rem;
-font-weight: bold;
-color: #111827;
-}
-
-.badge {
-display: inline-block;
-background: #2563eb;
-color: white;
-padding: 4px 10px;
-border-radius: 12px;
-font-size: 0.85rem;
-margin: 4px;
-}
-
-.bidding-section {
-display: flex;
-flex-direction: column;
-gap: 12px;
-}
-
-.bid-input-group {
-display: flex;
-gap: 8px;
-}
-
-.bid-input-group input {
-flex: 1;
-padding: 10px;
-border: 1px solid #d1d5db;
-border-radius: 6px;
-font-size: 1rem;
-}
-
-.btn {
-background: #10b981;
-color: white;
-border: none;
-padding: 10px 16px;
-font-size: 1rem;
-font-weight: bold;
-border-radius: 6px;
-cursor: pointer;
-}
-
-.btn:hover {
-background: #059669;
-}
-
-.btn-pass {
-background: #ef4444;
-}
-
-.btn-pass:hover {
-background: #dc2626;
-}
-
-.history-card {
-border: 1px solid #e5e7eb;
-border-radius: 8px;
-background: #ffffff;
-flex: 1;
-display: flex;
-flex-direction: column;
-height: 180px;
-}
-
-.history-card h3 {
-background: #f3f4f6;
-padding: 8px 12px;
-font-size: 0.9rem;
-color: #374151;
-border-bottom: 1px solid #e5e7eb;
-}
-
-.history-list {
-list-style: none;
-padding: 8px;
-overflow-y: auto;
-display: flex;
-flex-direction: column;
-gap: 6px;
-}
-
-.history-item {
-display: flex;
-justify-content: space-between;
-padding: 6px 10px;
-border-radius: 4px;
-font-size: 0.85rem;
-}
-
-.history-item.user { background: #ecfdf5; border-left: 4px solid #10b981; }
-.history-item.opponent { background: #fef2f2; border-left: 4px solid #ef4444; }
-
-.status-msg {
-font-size: 0.85rem;
-color: #dc2626;
-min-height: 18px;
-}
-
-.squads-panel {
-background: #f3f4f6;
-padding: 15px 20px;
-border-top: 2px solid #e5e7eb;
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 15px;
-font-size: 0.85rem;
-}
-
-.squad-column h4 {
-margin-bottom: 8px;
-color: #374151;
-border-bottom: 1px solid #d1d5db;
-padding-bottom: 4px;
-}
-
-.squad-ul {
-list-style: none;
-max-height: 100px;
-overflow-y: auto;
-}
-
-#match-view {
-display: none;
-padding: 30px;
-text-align: center;
-}
-
-.scoreboard {
-display: flex;
-justify-content: space-around;
-align-items: center;
-background: #111827;
-color: #ffffff;
-padding: 20px;
-border-radius: 8px;
-font-size: 1.5rem;
-margin-bottom: 20px;
-}
-
-.score {
-font-size: 3rem;
-color: #34d399;
-font-weight: bold;
-}
-
-.match-log {
-background: #f9fafb;
-border: 1px solid #e5e7eb;
-padding: 15px;
-border-radius: 8px;
-height: 200px;
-overflow-y: auto;
-text-align: left;
-margin-bottom: 20px;
-font-family: monospace;
-}
+/* AUCTION ARENA STYLES */
+.auction-card { padding: 30px; text-align: center; position: relative; }
+.bid-controls { display: flex; justify-content: center; gap: 10px; margin-top: 20px; align-items: center; flex-wrap: wrap; }
+.custom-bid-input { padding: 10px; width: 180px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2); background: #0f172a; color: #fff; font-size: 1rem; text-align: center; }
 </style>
 </head>
 <body>
 
-<div class="modal-overlay" id="setup-modal">
-<div class="modal-card">
-<h2>⚽ Welcome to Auction Arena</h2>
-<p>Set the starting budget for both you and your opponent:</p>
-<input type="text" id="initial-budget-input" value="300,000,000" oninput="formatInputWithCommas(this)">
-<button class="btn" style="width: 100%" onclick="startGame()">Start Game</button>
+<div id="portal-screen" class="glass-card">
+<h1>⚽ Ultimate Football Arcade</h1>
+<p>100+ Professional Players Database Loaded</p>
+<div class="game-selection-grid">
+<div class="game-card" onclick="openHairGameSetup()">
+<div class="icon">💈</div>
+<h2>Guess Player by Hair</h2>
+<p>Hardcore mode: Forehead & Hairline only!</p>
 </div>
-</div>
-
-<div class="auction-container" id="game-container">
-<div class="header">
-<h1>⚽ Football Auction Arena</h1>
-<span class="round-badge" id="round-indicator">Round 1 / 11</span>
-</div>
-
-<div class="budget-info">
-<div class="budget-box">Your Budget: <span class="budget-value" id="user-budget">$0</span></div>
-<div class="budget-box">Rival Budget: <span class="budget-value" id="ai-budget" style="color: #f87171;">$0</span></div>
-</div>
-
-<div id="auction-view">
-<div class="auction-body">
-<div class="player-card">
-<div class="player-image">⚽</div>
-<div class="player-name" id="player-name">Loading...</div>
-<div>
-<span class="badge" id="player-pos">FW</span>
-<span class="badge" id="player-rating">OVR: 91</span>
-</div>
-<p style="color: #4b5563; font-size: 0.85rem; margin-top: 10px;">
-Base Price: <strong id="base-price">$10,000,000</strong><br>
-Estimated Value: <strong id="market-value">$180,000,000</strong>
-</p>
-</div>
-
-<div class="bidding-section">
-<div>
-<label style="display: block; font-weight: bold; margin-bottom: 5px; color: #374151; font-size: 0.9rem;">
-Current Highest Bid: <span id="highest-bid" style="color: #059669;">$0</span>
-</label>
-<div class="bid-input-group">
-<input type="text" id="bid-input" placeholder="Enter Bid ($)" oninput="formatInputWithCommas(this)">
-<button class="btn" onclick="placeUserBid()">Bid</button>
-<button class="btn btn-pass" onclick="passAuction()">Pass</button>
-</div>
-<div class="status-msg" id="status-msg"></div>
-</div>
-
-<div class="history-card">
-<h3>Live Bidding Log</h3>
-<ul class="history-list" id="history-list"></ul>
+<div class="game-card" onclick="openAuctionSetup()">
+<div class="icon">🔨</div>
+<h2>Auction Arena</h2>
+<p>Bid up to $1.5B, build 11v11 squads, and simulate matches!</p>
 </div>
 </div>
 </div>
 
-<div class="squads-panel">
-<div class="squad-column">
-<h4>Your Squad (<span id="user-squad-count">0</span>/11)</h4>
-<ul class="squad-ul" id="user-squad-list"></ul>
+<div id="hair-setup-view" class="view-container glass-card">
+<div class="setup-box">
+<h2>💈 Guess The Hairline</h2>
+<div class="setup-options">
+<div class="setup-group">
+<label>Difficulty Rating:</label>
+<div class="option-buttons">
+<button class="opt-btn active" onclick="setDifficulty('easy', this)">Easy (Stars)</button>
+<button class="opt-btn" onclick="setDifficulty('medium', this)">Medium</button>
+<button class="opt-btn" onclick="setDifficulty('hard', this)">Hard (Niche)</button>
 </div>
-<div class="squad-column">
-<h4>Rival FC Squad (<span id="ai-squad-count">0</span>/11)</h4>
-<ul class="squad-ul" id="ai-squad-list"></ul>
+</div>
+<div class="setup-group">
+<label>Number of Players:</label>
+<div class="option-buttons">
+<button class="opt-btn active" onclick="setCount(10, this)">10</button>
+<button class="opt-btn" onclick="setCount(25, this)">25</button>
+<button class="opt-btn" onclick="setCount(50, this)">50</button>
+<button class="opt-btn" onclick="setCount(100, this)">100</button>
+</div>
+</div>
+</div>
+<div style="display: flex; gap: 10px; justify-content: center;">
+<button class="btn btn-secondary" onclick="showPortal()">Back</button>
+<button class="btn" onclick="startHairGame()">Start Game</button>
 </div>
 </div>
 </div>
 
-<div id="match-view">
-<h2>🏆 Final Match Simulation 🏆</h2>
-<p style="margin-bottom: 15px; color: #4b5563;">Your 11 players are going head-to-head against Rival FC!</p>
-
-<div class="scoreboard">
-<div>Your Team<br><small id="user-team-ovr">OVR: 0</small></div>
-<div class="score" id="match-score">0 - 0</div>
-<div>Rival FC<br><small id="ai-team-ovr">OVR: 0</small></div>
+<div id="hair-game-view" class="view-container glass-card">
+<div class="hair-game-card">
+<button class="top-bar-btn" onclick="showPortal()">← Main Menu</button>
+<div class="game-header">
+<div><strong>Score:</strong> <span id="hair-score" style="color: #34d399;">0</span></div>
+<div><strong>Player:</strong> <span id="hair-progress">1 / 10</span></div>
+<div><strong>Difficulty:</strong> <span id="hair-diff-tag" style="text-transform: uppercase; color: #f59e0b;">Easy</span></div>
+</div>
+<div class="hair-display">
+<div class="player-image-box">
+<img id="player-real-img" src="" alt="Player Hair Cutout">
+</div>
+<p style="color: #94a3b8; font-size: 0.85rem; margin-top: 10px;" id="hair-hint">Loading...</p>
+</div>
+<div class="feedback-msg" id="feedback-msg"></div>
+<div class="search-wrapper">
+<input type="text" id="player-search" class="search-input" placeholder="Type player name..." autocomplete="off" oninput="handleSearch(this.value)">
+<ul id="suggestions-list" class="suggestions-list" style="display: none;"></ul>
+</div>
+<div style="display: flex; gap: 10px; justify-content: center;">
+<button class="btn btn-secondary" onclick="skipHairPlayer()">Skip</button>
+</div>
+</div>
 </div>
 
-<div class="match-log" id="match-log"></div>
-<button class="btn" onclick="location.reload()">Play Again</button>
+<!-- AUCTION ARENA SETUP -->
+<div id="auction-setup-view" class="view-container glass-card">
+<div class="setup-box">
+<h2>🔨 Auction Arena Setup</h2>
+<div class="setup-options" style="max-width: 420px; margin: 20px auto;">
+<div class="setup-group">
+<label>Starting Budget (Max: $1,500,000,000):</label>
+<input type="text" id="budget-input" class="search-input" value="1,000,000,000" oninput="formatBudgetInput(this)">
+</div>
+</div>
+<div style="display: flex; gap: 10px; justify-content: center; margin-top: 25px;">
+<button class="btn btn-secondary" onclick="showPortal()">Back</button>
+<button class="btn" onclick="startAuctionGame()">Start Auction</button>
+</div>
+</div>
 </div>
 
+<!-- AUCTION GAMEPLAY VIEW -->
+<div id="auction-game-view" class="view-container glass-card">
+<div class="auction-card">
+<button class="top-bar-btn" onclick="showPortal()">← Main Menu</button>
+<div class="game-header">
+<div><strong>Budget:</strong> $<span id="auction-budget" style="color: #34d399;">0</span></div>
+<div><strong>Squad:</strong> <span id="auction-progress">1 / 11</span></div>
+<div><strong>Current Bid:</strong> $<span id="current-bid">0</span></div>
+</div>
+<div class="hair-display">
+<div class="player-image-box" style="width: 200px; height: 120px; margin-bottom: 12px;">
+<img id="auction-player-img" src="" alt="Player Preview">
+</div>
+<h3 id="auction-player-name" style="font-size: 1.5rem; color: #60a5fa;">Player Name</h3>
+<p id="auction-player-pos" style="color: #94a3b8; margin-top: 5px;">Position</p>
+<p id="auction-player-tier" style="font-size: 0.85rem; color: #f59e0b; margin-top: 5px;">Tier: Star</p>
+</div>
+<div class="bid-controls">
+<input type="text" id="custom-bid-val" class="custom-bid-input" value="10,000,000" oninput="formatCustomBid(this)">
+<button class="btn" onclick="placeCustomBid()">Place Custom Bid</button>
+<button class="btn btn-secondary" onclick="passAuction()">Pass / Fallback</button>
+</div>
+</div>
+</div>
+
+<!-- MATCH SIMULATION VIEW -->
+<div id="auction-sim-view" class="view-container glass-card">
+<div class="setup-box">
+<h2>🏟️ Match Simulation: 11 vs 11</h2>
+<p id="sim-status" style="color: #94a3b8; margin: 15px 0; font-size: 1.1rem;">Simulating match against AI opponent squad...</p>
+<div id="sim-results" style="margin: 20px 0; font-size: 1.2rem; color: #34d399; font-weight: bold;"></div>
+<button class="btn" onclick="showPortal()">Return to Main Menu</button>
+</div>
 </div>
 
 <script>
-// Expanded Pool of Players Organized by Position
-const playerPool = {
-FW: [
-{ top: { name: "Kylian Mbappé", pos: "FW", ovr: 91, val: 180000000 }, backup: { name: "Robert Lewandowski", pos: "FW", ovr: 88, val: 50000000 } },
-{ top: { name: "Erling Haaland", pos: "FW", ovr: 91, val: 180000000 }, backup: { name: "Harry Kane", pos: "FW", ovr: 89, val: 90000000 } },
-{ top: { name: "Mohamed Salah", pos: "FW", ovr: 89, val: 100000000 }, backup: { name: "Victor Osimhen", pos: "FW", ovr: 87, val: 75000000 } },
-{ top: { name: "Lautaro Martínez", pos: "FW", ovr: 89, val: 110000000 }, backup: { name: "Julian Alvarez", pos: "FW", ovr: 85, val: 65000000 } }
-],
-WING: [
-{ top: { name: "Vinícius Júnior", pos: "LW", ovr: 90, val: 150000000 }, backup: { name: "Rafael Leão", pos: "LW", ovr: 86, val: 60000000 } },
-{ top: { name: "Rodrygo Goes", pos: "RW", ovr: 87, val: 100000000 }, backup: { name: "Bukayo Saka", pos: "RW", ovr: 88, val: 120000000 } },
-{ top: { name: "Lamine Yamal", pos: "RW", ovr: 86, val: 120000000 }, backup: { name: "Khvicha Kvaratskhelia", pos: "LW", ovr: 85, val: 70000000 } },
-{ top: { name: "Neymar Jr", pos: "LW", ovr: 87, val: 45000000 }, backup: { name: "Son Heung-min", pos: "LW", ovr: 87, val: 50000000 } }
-],
-CAM: [
-{ top: { name: "Jude Bellingham", pos: "CAM", ovr: 90, val: 140000000 }, backup: { name: "Jamal Musiala", pos: "CAM", ovr: 87, val: 80000000 } },
-{ top: { name: "Florian Wirtz", pos: "CAM", ovr: 89, val: 130000000 }, backup: { name: "Martin Ødegaard", pos: "CAM", ovr: 88, val: 90000000 } },
-{ top: { name: "Bruno Fernandes", pos: "CAM", ovr: 87, val: 65000000 }, backup: { name: "James Maddison", pos: "CAM", ovr: 84, val: 45000000 } }
-],
-CM: [
-{ top: { name: "Kevin De Bruyne", pos: "CM", ovr: 91, val: 100000000 }, backup: { name: "Luka Modrić", pos: "CM", ovr: 86, val: 30000000 } },
-{ top: { name: "Pedri", pos: "CM", ovr: 87, val: 80000000 }, backup: { name: "Gavi", pos: "CM", ovr: 84, val: 60000000 } },
-{ top: { name: "Federico Valverde", pos: "CM", ovr: 88, val: 110000000 }, backup: { name: "Alexis Mac Allister", pos: "CM", ovr: 85, val: 70000000 } }
-],
-CDM: [
-{ top: { name: "Rodri", pos: "CDM", ovr: 91, val: 120000000 }, backup: { name: "Declan Rice", pos: "CDM", ovr: 87, val: 85000000 } },
-{ top: { name: "Aurélien Tchouaméni", pos: "CDM", ovr: 86, val: 75000000 }, backup: { name: "Eduardo Camavinga", pos: "CDM", ovr: 85, val: 80000000 } }
-],
-RB: [
-{ top: { name: "Trent Alexander-Arnold", pos: "RB", ovr: 86, val: 70000000 }, backup: { name: "Achraf Hakimi", pos: "RB", ovr: 84, val: 50000000 } },
-{ top: { name: "Jeremie Frimpong", pos: "RB", ovr: 85, val: 55000000 }, backup: { name: "Reece James", pos: "RB", ovr: 83, val: 40000000 } }
-],
-LB: [
-{ top: { name: "Alphonso Davies", pos: "LB", ovr: 85, val: 60000000 }, backup: { name: "Theo Hernández", pos: "LB", ovr: 84, val: 55000000 } },
-{ top: { name: "Federico Dimarco", pos: "LB", ovr: 84, val: 45000000 }, backup: { name: "Nuno Mendes", pos: "LB", ovr: 83, val: 40000000 } }
-],
-CB: [
-{ top: { name: "Virgil van Dijk", pos: "CB", ovr: 89, val: 75000000 }, backup: { name: "Antonio Rüdiger", pos: "CB", ovr: 87, val: 45000000 } },
-{ top: { name: "Rúben Dias", pos: "CB", ovr: 88, val: 80000000 }, backup: { name: "William Saliba", pos: "CB", ovr: 86, val: 65000000 } },
-{ top: { name: "Éder Militão", pos: "CB", ovr: 86, val: 60000000 }, backup: { name: "Ronald Araújo", pos: "CB", ovr: 85, val: 55000000 } },
-{ top: { name: "Alessandro Bastoni", pos: "CB", ovr: 86, val: 70000000 }, backup: { name: "Gabriel Magalhães", pos: "CB", ovr: 85, val: 60000000 } }
-],
-GK: [
-{ top: { name: "Thibaut Courtois", pos: "GK", ovr: 89, val: 60000000 }, backup: { name: "Alisson Becker", pos: "GK", ovr: 88, val: 50000000 } },
-{ top: { name: "Ederson", pos: "GK", ovr: 88, val: 45000000 }, backup: { name: "Gianluigi Donnarumma", pos: "GK", ovr: 87, val: 40000000 } },
-{ top: { name: "Marc-André ter Stegen", pos: "GK", ovr: 88, val: 35000000 }, backup: { name: "Mike Maignan", pos: "GK", ovr: 86, val: 38000000 } }
-]
-};
+let playerDatabase = [];
+let selectedDifficulty = 'easy';
+let selectedCount = 10;
+let hairGameList = [];
+let currentHairIndex = 0;
+let hairScore = 0;
 
-// Position Sequence for 11 Rounds
-const roundPositions = ["FW", "WING", "WING", "CAM", "CM", "CM", "CDM", "RB", "LB", "CB", "GK"];
-let selectedDraftPairs = [];
-
-let currentRound = 0;
-let userBudget = 0;
-let aiBudget = 0;
-let highestBid = 0;
-let highestBidder = "";
-let isAuctionActive = false;
-
+// Auction variables
+let auctionList = [];
+let currentAuctionIndex = 0;
+let userBudget = 1000000000;
+let currentBid = 10000000;
 let userSquad = [];
-let aiSquad = [];
 
-function generateRandomDraft() {
-selectedDraftPairs = [];
-roundPositions.forEach(pos => {
-const options = playerPool[pos];
-const randomChoice = options[Math.floor(Math.random() * options.length)];
-selectedDraftPairs.push(randomChoice);
+async function fetchPlayers() {
+const teamIDs = [
+133604, 133610, 133602, 133612, 133600, // Premier League
+133738, 133739, 133729, // La Liga
+133664, 133667, 133670, // Serie A
+133681, 133683, // Bundesliga
+133702, 133704 // Ligue 1
+];
+
+const superstars = ["Erling Haaland", "Lionel Messi", "Cristiano Ronaldo", "Kylian Mbappe", "Jude Bellingham", "Mohamed Salah", "Vinicius Junior", "Kevin De Bruyne", "Harry Kane", "Bukayo Saka", "Lamine Yamal", "Florian Wirtz", "Rodri", "Cole Palmer"];
+
+for (let id of teamIDs) {
+try {
+const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/lookup_all_players.php?id=${id}`);
+const data = await res.json();
+if (data && data.player) {
+data.player.forEach(p => {
+let imgUrl = p.strCutout || p.strThumb || p.strRender;
+if (imgUrl) {
+let tier = "Star";
+let rating = Math.floor(Math.random() * 5) + 85;
+if (!superstars.some(s => p.strPlayer.includes(s))) {
+if (p.strNationality === "England" || p.strNationality === "Spain" || p.strNationality === "France" || p.strNationality === "Brazil" || p.strNationality === "Germany") {
+tier = "Standard";
+rating = Math.floor(Math.random() * 6) + 78;
+} else {
+tier = "Weaker / Squad Player";
+rating = Math.floor(Math.random() * 8) + 70;
+}
+} else {
+rating = Math.floor(Math.random() * 4) + 91;
+}
+
+playerDatabase.push({
+name: p.strPlayer,
+pos: p.strPosition || "Midfielder",
+tier: tier,
+rating: rating,
+image: imgUrl
 });
 }
-
-function formatInputWithCommas(input) {
-let value = input.value.replace(/,/g, '');
-if (!isNaN(value) && value.length > 0) {
-input.value = parseInt(value, 10).toLocaleString();
-} else {
-input.value = '';
+});
+}
+} catch (e) {
+console.log("Error loading team", id);
 }
 }
 
-function startGame() {
-const input = document.getElementById('initial-budget-input').value.replace(/,/g, '');
-const budget = parseInt(input, 10);
+// Fallback pool guarantee if database needs padding
+if (playerDatabase.length < 50) {
+playerDatabase.push(
+{ name: "Kevin De Bruyne", pos: "Midfielder", tier: "Star", rating: 91, image: "https://www.thesportsdb.com/images/media/player/cutout/w77rxu1582294154.png" },
+{ name: "Mohamed Salah", pos: "Forward", tier: "Star", rating: 90, image: "https://www.thesportsdb.com/images/media/player/cutout/w77rxu1582294154.png" },
+{ name: "Virgil van Dijk", pos: "Defender", tier: "Star", rating: 89, image: "https://www.thesportsdb.com/images/media/player/cutout/w77rxu1582294154.png" },
+{ name: "Bukayo Saka", pos: "Winger", tier: "Star", rating: 88, image: "https://www.thesportsdb.com/images/media/player/cutout/w77rxu1582294154.png" },
+{ name: "Declan Rice", pos: "Midfielder", tier: "Standard", rating: 85, image: "https://www.thesportsdb.com/images/media/player/cutout/w77rxu1582294154.png" }
+);
+}
+}
 
-if (isNaN(budget) || budget <= 0) {
-alert("Please enter a valid budget!");
+fetchPlayers();
+
+function hideAllViews() {
+document.getElementById('portal-screen').style.display = 'none';
+document.getElementById('hair-setup-view').style.display = 'none';
+document.getElementById('hair-game-view').style.display = 'none';
+document.getElementById('auction-setup-view').style.display = 'none';
+document.getElementById('auction-game-view').style.display = 'none';
+document.getElementById('auction-sim-view').style.display = 'none';
+}
+
+function showPortal() {
+hideAllViews();
+document.getElementById('portal-screen').style.display = 'block';
+}
+
+function openHairGameSetup() {
+hideAllViews();
+document.getElementById('hair-setup-view').style.display = 'block';
+}
+
+function openAuctionSetup() {
+hideAllViews();
+document.getElementById('auction-setup-view').style.display = 'block';
+}
+
+function setDifficulty(diff, btn) {
+selectedDifficulty = diff;
+btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+}
+
+function setCount(count, btn) {
+selectedCount = count;
+btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+btn.classList.add('active');
+}
+
+function startHairGame() {
+let filtered = playerDatabase.filter(p => p.tier === "Star");
+if (filtered.length < selectedCount) filtered = playerDatabase;
+hairGameList = [...filtered].sort(() => 0.5 - Math.random()).slice(0, selectedCount);
+currentHairIndex = 0;
+hairScore = 0;
+
+hideAllViews();
+document.getElementById('hair-game-view').style.display = 'block';
+document.getElementById('hair-diff-tag').textContent = selectedDifficulty;
+renderHairQuestion();
+}
+
+function renderHairQuestion() {
+if (currentHairIndex >= hairGameList.length) {
+alert(`Game Finished! Final score: ${hairScore}/${hairGameList.length}`);
+showPortal();
 return;
 }
-
-userBudget = budget;
-aiBudget = budget;
-
-generateRandomDraft();
-
-document.getElementById('setup-modal').style.display = 'none';
-updateUI();
-loadRound();
+const p = hairGameList[currentHairIndex];
+document.getElementById('hair-score').textContent = hairScore;
+document.getElementById('hair-progress').textContent = `${currentHairIndex + 1} / ${hairGameList.length}`;
+document.getElementById('hair-hint').textContent = `Hint: Position - ${p.pos}`;
+document.getElementById('feedback-msg').textContent = "";
+document.getElementById('player-search').value = "";
+document.getElementById('suggestions-list').style.display = 'none';
+document.getElementById('player-real-img').src = p.image || "https://www.thesportsdb.com/images/media/player/cutout/w77rxu1582294154.png";
 }
 
-function updateUI() {
-document.getElementById('user-budget').textContent = `$${userBudget.toLocaleString()}`;
-document.getElementById('ai-budget').textContent = `$${aiBudget.toLocaleString()}`;
-document.getElementById('round-indicator').textContent = `Round ${currentRound + 1} / 11`;
-
-document.getElementById('user-squad-count').textContent = userSquad.length;
-document.getElementById('ai-squad-count').textContent = aiSquad.length;
-
-document.getElementById('user-squad-list').innerHTML = userSquad.map(p => `<li>✅ ${p.name} (${p.pos} - ${p.ovr})</li>`).join('');
-document.getElementById('ai-squad-list').innerHTML = aiSquad.map(p => `<li>🤖 ${p.name} (${p.pos} - ${p.ovr})</li>`).join('');
+function handleSearch(query) {
+const suggestions = document.getElementById('suggestions-list');
+const cleanQuery = query.trim().toLowerCase();
+if (cleanQuery.length === 0) {
+suggestions.style.display = 'none';
+return;
+}
+const matches = playerDatabase.filter(p => p.name.toLowerCase().includes(cleanQuery)).slice(0, 6);
+if (matches.length > 0) {
+suggestions.innerHTML = matches.map(p => `<li class="suggestion-item" onclick="selectPlayer('${p.name.replace(/'/g, "\\'")}')">${p.name}</li>`).join('');
+suggestions.style.display = 'block';
+} else {
+suggestions.style.display = 'none';
+}
 }
 
-function loadRound() {
-if (currentRound >= 11) {
+function selectPlayer(name) {
+document.getElementById('player-search').value = name;
+document.getElementById('suggestions-list').style.display = 'none';
+checkAnswer(name);
+}
+
+function checkAnswer(guessedName) {
+const target = hairGameList[currentHairIndex];
+const feedback = document.getElementById('feedback-msg');
+if (guessedName.toLowerCase() === target.name.toLowerCase()) {
+feedback.style.color = "#34d399";
+feedback.textContent = "✅ Correct!";
+hairScore++;
+setTimeout(() => { currentHairIndex++; renderHairQuestion(); }, 1000);
+} else {
+feedback.style.color = "#ef4444";
+feedback.textContent = "❌ Try again!";
+}
+}
+
+function skipHairPlayer() {
+const target = hairGameList[currentHairIndex];
+const feedback = document.getElementById('feedback-msg');
+feedback.style.color = "#f59e0b";
+feedback.textContent = `Skipped! It was ${target.name}`;
+setTimeout(() => { currentHairIndex++; renderHairQuestion(); }, 1200);
+}
+
+function formatNumber(num) {
+return Number(num).toLocaleString('en-US');
+}
+
+function formatBudgetInput(input) {
+let val = input.value.replace(/,/g, '').replace(/\D/g, '');
+if (val === '') val = '0';
+let num = parseInt(val, 10);
+if (num > 1500000000) num = 1500000000;
+input.value = formatNumber(num);
+}
+
+function formatCustomBid(input) {
+let val = input.value.replace(/,/g, '').replace(/\D/g, '');
+if (val === '') val = '0';
+input.value = formatNumber(parseInt(val, 10));
+}
+
+function startAuctionGame() {
+let rawBudget = document.getElementById('budget-input').value.replace(/,/g, '');
+userBudget = parseInt(rawBudget, 10) || 1000000000;
+if (userBudget > 1500000000) userBudget = 1500000000;
+
+auctionList = [...playerDatabase].sort(() => 0.5 - Math.random()).slice(0, 11);
+currentAuctionIndex = 0;
+userSquad = [];
+currentBid = 10000000;
+
+hideAllViews();
+document.getElementById('auction-game-view').style.display = 'block';
+renderAuctionItem();
+}
+
+function renderAuctionItem() {
+if (currentAuctionIndex >= 11) {
 startMatchSimulation();
 return;
 }
 
-const pair = selectedDraftPairs[currentRound];
-const topPlayer = pair.top;
-
-highestBid = Math.round(topPlayer.val * 0.1);
-highestBidder = "Auctioneer";
-isAuctionActive = true;
-
-document.getElementById('player-name').textContent = topPlayer.name;
-document.getElementById('player-pos').textContent = topPlayer.pos;
-document.getElementById('player-rating').textContent = `OVR: ${topPlayer.ovr}`;
-document.getElementById('base-price').textContent = `$${highestBid.toLocaleString()}`;
-document.getElementById('market-value').textContent = `$${topPlayer.val.toLocaleString()}`;
-document.getElementById('highest-bid').textContent = `$${highestBid.toLocaleString()}`;
-document.getElementById('history-list').innerHTML = `<li class="history-item opponent"><span><strong>Auctioneer:</strong> Bidding starts</span><span>$${highestBid.toLocaleString()}</span></li>`;
-document.getElementById('status-msg').textContent = "";
-
-updateUI();
+const p = auctionList[currentAuctionIndex];
+currentBid = Math.floor(userBudget / 20) + 5000000;
+document.getElementById('auction-budget').textContent = formatNumber(userBudget);
+document.getElementById('auction-progress').textContent = `${currentAuctionIndex + 1} / 11`;
+document.getElementById('current-bid').textContent = formatNumber(currentBid);
+document.getElementById('auction-player-name').textContent = p.name;
+document.getElementById('auction-player-pos').textContent = `Position: ${p.pos}`;
+document.getElementById('auction-player-tier').textContent = `Tier: ${p.tier} (Rating: ${p.rating})`;
+document.getElementById('auction-player-img').src = p.image || "https://www.thesportsdb.com/images/media/player/cutout/w77rxu1582294154.png";
+document.getElementById('custom-bid-val').value = formatNumber(currentBid);
 }
 
-function addHistoryItem(bidder, amount, isUser = false) {
-const li = document.createElement('li');
-li.className = `history-item ${isUser ? 'user' : 'opponent'}`;
-li.innerHTML = `<span><strong>${bidder}:</strong> placed a bid</span><span>$${amount.toLocaleString()}</span>`;
-const historyList = document.getElementById('history-list');
-historyList.prepend(li);
-}
-
-function placeUserBid() {
-if (!isAuctionActive) return;
-
-const input = document.getElementById('bid-input');
-const rawValue = input.value.replace(/,/g, '');
-const bidAmount = parseInt(rawValue, 10);
-const statusMsg = document.getElementById('status-msg');
-statusMsg.textContent = "";
-
-if (isNaN(bidAmount)) {
-statusMsg.textContent = "Please enter a valid bid amount.";
-return;
-}
-
-if (bidAmount <= highestBid) {
-statusMsg.textContent = `Bid must exceed current highest bid ($${highestBid.toLocaleString()}).`;
-return;
-}
+function placeCustomBid() {
+let rawBid = document.getElementById('custom-bid-val').value.replace(/,/g, '');
+let bidAmount = parseInt(rawBid, 10) || 0;
 
 if (bidAmount > userBudget) {
-statusMsg.textContent = "Insufficient budget.";
+alert("You do not have enough budget for this bid!");
 return;
 }
 
-highestBid = bidAmount;
-highestBidder = "You";
-document.getElementById('highest-bid').textContent = `$${highestBid.toLocaleString()}`;
-addHistoryItem("You", highestBid, true);
-input.value = "";
+const p = auctionList[currentAuctionIndex];
+let opponentOutbidThreshold = p.tier === "Star" ? currentBid * 1.3 : currentBid * 1.1;
 
-setTimeout(simulateAiBid, 1000);
+if (bidAmount >= opponentOutbidThreshold || userBudget - bidAmount < 10000000) {
+userBudget -= bidAmount;
+userSquad.push(p);
+alert(`🎉 You won the auction for ${p.name}! Added to your 11v11 squad.`);
+} else {
+let weakerPool = playerDatabase.filter(pl => pl.tier === "Weaker / Squad Player");
+let weakerPlayer = weakerPool.length > 0 ? weakerPool[Math.floor(Math.random() * weakerPool.length)] : { name: "Academy Reserve", pos: "Utility", tier: "Weaker", rating: 68 };
+userSquad.push(weakerPlayer);
+alert(`❌ You were outbid by a rival club! You were assigned a weaker squad player: ${weakerPlayer.name} (${weakerPlayer.pos}).`);
+}
+
+currentAuctionIndex++;
+renderAuctionItem();
 }
 
 function passAuction() {
-if (!isAuctionActive) return;
-document.getElementById('status-msg').textContent = "You passed this round.";
-endRound(highestBidder === "You" ? "You" : "Rival FC");
-}
+const p = auctionList[currentAuctionIndex];
+let weakerPool = playerDatabase.filter(pl => pl.tier === "Weaker / Squad Player");
+let weakerPlayer = weakerPool.length > 0 ? weakerPool[Math.floor(Math.random() * weakerPool.length)] : { name: "Academy Reserve", pos: "Utility", tier: "Weaker", rating: 68 };
+userSquad.push(weakerPlayer);
+alert(`Passed on ${p.name}. Assigned weaker squad player: ${weakerPlayer.name}`);
 
-function simulateAiBid() {
-if (!isAuctionActive) return;
-
-const pair = selectedDraftPairs[currentRound];
-const maxValuation = pair.top.val * 1.1;
-
-if (highestBid >= maxValuation || (highestBid + 5000000) > aiBudget) {
-addHistoryItem("Auctioneer", "Rival FC passed! SOLD to You!", false);
-endRound("You");
-return;
-}
-
-const increment = Math.max(1000000, Math.round((highestBid * 0.08) / 1000000) * 1000000);
-highestBid += increment;
-highestBidder = "Rival FC";
-
-document.getElementById('highest-bid').textContent = `$${highestBid.toLocaleString()}`;
-addHistoryItem("Rival FC", highestBid, false);
-}
-
-function endRound(winner) {
-isAuctionActive = false;
-const pair = selectedDraftPairs[currentRound];
-
-if (winner === "You") {
-userBudget -= highestBid;
-userSquad.push(pair.top);
-aiSquad.push(pair.backup);
-} else {
-aiBudget -= highestBid;
-aiSquad.push(pair.top);
-userSquad.push(pair.backup);
-}
-
-currentRound++;
-setTimeout(loadRound, 1500);
+currentAuctionIndex++;
+renderAuctionItem();
 }
 
 function startMatchSimulation() {
-document.getElementById('auction-view').style.display = 'none';
-document.getElementById('match-view').style.display = 'block';
+hideAllViews();
+document.getElementById('auction-sim-view').style.display = 'block';
+document.getElementById('sim-status').textContent = "Assembling full 11 vs 11 lineups and running simulation...";
+document.getElementById('sim-results').textContent = "";
 
-const userOvr = Math.round(userSquad.reduce((a, b) => a + b.ovr, 0) / 11);
-const aiOvr = Math.round(aiSquad.reduce((a, b) => a + b.ovr, 0) / 11);
+setTimeout(() => {
+let userTeamRatingSum = userSquad.reduce((acc, player) => acc + player.rating, 0);
+let aiTeamRatingSum = 890 + Math.floor(Math.random() * 60);
 
-document.getElementById('user-team-ovr').textContent = `OVR: ${userOvr}`;
-document.getElementById('ai-team-ovr').textContent = `OVR: ${aiOvr}`;
+let userGoals = Math.floor(userTeamRatingSum / 350) + (Math.random() > 0.4 ? 1 : 0);
+let aiGoals = Math.floor(aiTeamRatingSum / 370) + (Math.random() > 0.5 ? 1 : 0);
 
-let userGoals = 0;
-let aiGoals = 0;
-const log = document.getElementById('match-log');
-
-log.innerHTML += `<p>0' - Kickoff! The match is underway.</p>`;
-
-for (let min = 10; min <= 90; min += 15) {
-let chance = Math.random() * 100;
-let userChance = 20 + (userOvr - aiOvr) * 3;
-
-if (chance < userChance) {
-userGoals++;
-let scorer = userSquad[Math.floor(Math.random() * 5)].name;
-log.innerHTML += `<p style="color: #059669;">⚽ ${min}' - GOAL! ${scorer} scores for Your Team!</p>`;
-} else if (chance > 80) {
-aiGoals++;
-let scorer = aiSquad[Math.floor(Math.random() * 5)].name;
-log.innerHTML += `<p style="color: #dc2626;">⚽ ${min}' - GOAL! ${scorer} scores for Rival FC!</p>`;
-}
-}
-
-log.innerHTML += `<p>90' - Full-Time Whistle!</p>`;
-document.getElementById('match-score').textContent = `${userGoals} - ${aiGoals}`;
-
-if (userGoals > aiGoals) {
-log.innerHTML += `<h3 style="color: #059669; margin-top: 10px;">🏆 VICTORY! You won the championship match!</h3>`;
-} else if (aiGoals > userGoals) {
-log.innerHTML += `<h3 style="color: #dc2626; margin-top: 10px;">❌ DEFEAT! Rival FC took the trophy!</h3>`;
+let resultText = `Final Score: Your Squad [${userGoals}] - [${aiGoals}] AI Rival Squad\n`;
+if (userGoals >= aiGoals) {
+resultText += "🏆 Incredible performance! Your assembled 11v11 squad won the Auction Arena tournament!";
 } else {
-log.innerHTML += `<h3 style="color: #d97706; margin-top: 10px;">🤝 DRAW! What a thrilling match!</h3>`;
+resultText += "⚽ Hard-fought battle! Your rival club edged out the win in the simulation.";
 }
+
+document.getElementById('sim-status').textContent = "Simulation Complete!";
+document.getElementById('sim-results').innerHTML = resultText.replace(/\n/g, '<br>');
+}, 2000);
 }
 </script>
 </body>
 </html>
+
+
 
 
 
